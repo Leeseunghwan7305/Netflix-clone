@@ -1,16 +1,25 @@
 import { Link, useMatch } from "react-router-dom";
 import styled from "styled-components";
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import {
+  AnimatePresence,
+  motion,
+  useAnimation,
+  useMotionValue,
+  useViewportScroll,
+  useVisualElementContext,
+} from "framer-motion";
+import { useEffect, useState } from "react";
+import { useQuery } from "react-query";
+import { getMovies } from "../../api/api";
 
-const Nav = styled.nav`
+const Nav = styled(motion.nav)`
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: fixed;
   width: 100%;
   top: 0;
-  background-color: black;
+  background-color: transparent;
   font-size: 20px;
   padding: 20px 60px;
   color: white;
@@ -83,17 +92,45 @@ const Input = styled(motion.input)`
   transform-origin: right center;
   position: absolute;
   left: -150px;
+  right: 0px;
+  padding: 5px 10px;
+  padding-left: 40px;
+  z-index: -1;
+  color: white;
+  font-size: 16px;
+  background-color: transparent;
+  border: 1px solid ${(props) => props.theme.white.lighter};
 `;
 
 const Header = () => {
   const homeMatch = useMatch("/");
   const tvMatch = useMatch("tv");
+  const { scrollY } = useViewportScroll();
+  const navAnimation = useAnimation();
   const [search, setSearch] = useState(false);
   const toggleSearch = () => {
     setSearch((pre) => !pre);
   };
+  useEffect(() => {
+    scrollY.onChange(() => console.log(scrollY.get()));
+
+    if (scrollY.get() > 80) {
+      navAnimation.start({ backgroundColor: "red" });
+    } else {
+      navAnimation.start({ backgroundColor: "blue" });
+    }
+  }, [scrollY]);
+
+  let { data, isLoading } = useQuery("playing", getMovies);
+  console.log(data, isLoading);
+
   return (
-    <Nav>
+    <Nav
+      initial={{ backgroundColor: "transparent" }}
+      animate={{
+        backgroundColor: scrollY.get() > 80 ? "rgba(0,0,0,0)" : "rgba(0,0,0,1)",
+      }}
+    >
       <Col>
         <Logo
           variants={LogoVari}
@@ -127,7 +164,7 @@ const Header = () => {
         <Search>
           <motion.svg
             onClick={toggleSearch}
-            animate={{ x: search ? -180 : 0 }}
+            animate={{ x: search ? -145 : 0 }}
             transition={{ type: "linear" }}
             fill="currentColor"
             viewBox="0 0 20 20"
