@@ -121,9 +121,6 @@ const Header = () => {
     }
   }, [scrollY]);
 
-  let { data, isLoading } = useQuery("playing", getMovies);
-  console.log(data, isLoading);
-
   return (
     <Nav
       initial={{ backgroundColor: "transparent" }}
