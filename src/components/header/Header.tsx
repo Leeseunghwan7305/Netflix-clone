@@ -112,8 +112,6 @@ const Header = () => {
     setSearch((pre) => !pre);
   };
   useEffect(() => {
-    scrollY.onChange(() => console.log(scrollY.get()));
-
     if (scrollY.get() > 80) {
       navAnimation.start({ backgroundColor: "red" });
     } else {
