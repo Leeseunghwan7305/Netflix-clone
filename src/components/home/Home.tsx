@@ -102,12 +102,14 @@ const BoxVari = {
 const DetailBox = styled(motion.div)`
   width: 40vw;
   height: 80vh;
-  background-color: white;
+  background-color: black;
   position: absolute;
   top: 100px;
   margin: 0 auto;
   left: 0;
   right: 0;
+  border-radius: 15px;
+  color: white;
 `;
 const OverLay = styled(motion.div)`
   position: fixed;
@@ -115,6 +117,12 @@ const OverLay = styled(motion.div)`
   top: 0;
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.3);
+`;
+const DetailImg = styled.img`
+  width: 100%;
+  height: 50%;
+  border-top-right-radius: 15px;
+  border-top-left-radius: 15px;
 `;
 const rowVariants = {
   hidden: {
@@ -132,10 +140,16 @@ const Home = () => {
     ["playing", "nowPlaying"],
     getMovies
   );
+
   const { scrollY } = useViewportScroll();
   const navigate = useNavigate();
   //useMatch 써도 되고 Outlet 써도 되고
   const detailMovie = useMatch(`/movies/:movieId`);
+  const clickedMovie: any =
+    detailMovie?.params.movieId &&
+    data?.results.find(
+      (movie) => String(movie.id) === detailMovie.params.movieId
+    );
   const [index, setIndex] = useState(0);
   const [leaving, setLeaving] = useState(false);
   const incraseIndex = () => {
@@ -157,6 +171,7 @@ const Home = () => {
     navigate("/");
   };
   const offset = 6; // 6칸씩 띄게할것임 19개의 영화
+
   return (
     <Wrapper>
       {isLoading ? (
@@ -217,7 +232,16 @@ const Home = () => {
                   style={{ top: scrollY.get() + 125 }}
                   layoutId={detailMovie.params.movieId + ""}
                 >
-                  안녕안뇽
+                  <DetailImg
+                    style={{
+                      backgroundImage: `linear-gradient(to top, black, transparent), url(${makeImagePath(
+                        clickedMovie.backdrop_path,
+                        "w500"
+                      )})`,
+                    }}
+                  />
+                  <nav>{clickedMovie.title}</nav>
+                  <div>{clickedMovie.overview}</div>
                 </DetailBox>
               </>
             ) : null}
