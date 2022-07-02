@@ -1,6 +1,7 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useViewportScroll } from "framer-motion";
 import React, { useState } from "react";
 import { useQuery } from "react-query";
+import { useMatch, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { getMovies, IGetMoviesResult } from "../../api/api";
 import { makeImagePath } from "../../util/utils";
@@ -47,17 +48,73 @@ const Row = styled(motion.div)`
   width: 100%;
 `;
 
-const Box = styled(motion.div)<{ backImg: string }>`
+const Box = styled(motion.div)<{ backimg: string }>`
   height: 200px;
   font-size: 66px;
-  background-image: url(${(props) => props.backImg});
+  background-image: url(${(props) => props.backimg});
   background-size: cover;
+  position: relative;
   :first-child {
     transform-origin: center left;
   }
   :last-child {
     transform-origin: center right;
   }
+`;
+const Info = styled(motion.div)`
+  padding: 10px;
+  background-color: ${(props) => props.theme.black.lighter};
+  opacity: 0;
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  h4 {
+    text-align: center;
+    font-size: 18px;
+  }
+`;
+//relative?
+const infoVariants = {
+  hover: {
+    opacity: 1,
+    transition: {
+      delay: 0.5,
+      duaration: 0.1,
+      type: "tween",
+    },
+  },
+};
+const BoxVari = {
+  start: {},
+  end: {},
+  hover: {
+    zIndex: 200,
+    scale: 1.3,
+    y: -25,
+    transition: {
+      delay: 0.3,
+      duration: 0.3,
+      type: "tween",
+    },
+    opacity: 1,
+  },
+};
+const DetailBox = styled(motion.div)`
+  width: 40vw;
+  height: 80vh;
+  background-color: white;
+  position: absolute;
+  top: 100px;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+`;
+const OverLay = styled(motion.div)`
+  position: fixed;
+  width: 100vw;
+  top: 0;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.3);
 `;
 const rowVariants = {
   hidden: {
@@ -75,7 +132,10 @@ const Home = () => {
     ["playing", "nowPlaying"],
     getMovies
   );
-
+  const { scrollY } = useViewportScroll();
+  const navigate = useNavigate();
+  //useMatch 써도 되고 Outlet 써도 되고
+  const detailMovie = useMatch(`/movies/:movieId`);
   const [index, setIndex] = useState(0);
   const [leaving, setLeaving] = useState(false);
   const incraseIndex = () => {
@@ -89,6 +149,12 @@ const Home = () => {
     } else {
       return;
     }
+  };
+  const MoveDetailMovie = (id: number) => {
+    navigate(`/movies/${id}`);
+  };
+  const ToggleOverLay = () => {
+    navigate("/");
   };
   const offset = 6; // 6칸씩 띄게할것임 19개의 영화
   return (
@@ -123,22 +189,39 @@ const Home = () => {
                   .slice(offset * index, offset * index + offset)
                   .map((movie) => (
                     <Box
-                      whileHover={{
-                        scale: 1.3,
-                        y: -25,
-                        transition: {
-                          delay: 0.3,
-                          duration: 0.3,
-                          type: "tween",
-                        },
-                      }}
-                      backImg={makeImagePath(movie.backdrop_path, "w500")}
+                      variants={BoxVari}
+                      whileHover="hover"
+                      layoutId={movie.id + ""}
+                      onClick={() => MoveDetailMovie(movie.id)}
+                      backimg={makeImagePath(movie.backdrop_path, "w500")}
                       key={movie.id}
-                    ></Box>
+                    >
+                      <Info variants={infoVariants}>
+                        <h4>{movie.title}</h4>
+                      </Info>
+                    </Box>
                   ))}
               </Row>
             </AnimatePresence>
           </Slider>
+          <AnimatePresence>
+            {detailMovie ? (
+              <>
+                <OverLay
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={ToggleOverLay}
+                ></OverLay>
+                <DetailBox
+                  style={{ top: scrollY.get() + 125 }}
+                  layoutId={detailMovie.params.movieId + ""}
+                >
+                  안녕안뇽
+                </DetailBox>
+              </>
+            ) : null}
+          </AnimatePresence>
         </>
       )}
     </Wrapper>
